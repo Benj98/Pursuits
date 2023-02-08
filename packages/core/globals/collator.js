@@ -1,0 +1,1 @@
+global.collator = new Intl.Collator( "en", {sensitivity: "base"} );
