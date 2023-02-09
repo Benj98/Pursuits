@@ -6,8 +6,15 @@ fs.readFile('./weaponDamages.json', 'utf-8', (err, data) => {
     weaponDamages = JSON.parse(data);
 })
 
+const calculateDamages = async (player, targetPlayer, weapon, boneIndex) => {
+    player.outputChatBox("calculateDamages script runs.");
+    if(boneIndex == 98) {
+        player.outputChatBox("Headshot!");
+    }
+}
 
-mp.events.add('playerAttack', (player, sourceEntity, targetEntity, targetPlayer, weapon, boneIndex, damage) => {
+mp.events.add('playerAttack', async (player, sourceEntity, targetEntity, targetPlayer, weapon, boneIndex, damage) => {
+    await calculateDamages(player, targetPlayer, weapon, boneIndex);
     player.outputChatBox(`[DEBUG] Hit player: ${targetPlayer.name} | Bone hit: ${boneIndex} | Damage dealt: ${damage} | Weapon: ${weapon}`);
     targetPlayer.outputChatBox(`[DEBUG] Hit by: ${player.name} | Bone hit: ${boneIndex} | Damage received: ${damage} | Weapon: ${weapon}`);
 
@@ -17,9 +24,9 @@ mp.events.add('playerAttack', (player, sourceEntity, targetEntity, targetPlayer,
 })
 
 mp.events.add('shotFired', (player, weapon) => {
-    if(weaponDamages.pistols.hasOwnProperty(weapon)) {
-        player.outputChatBox('Custom damages!');
-    } else {
-        player.outputChatBox('No custom damages. :(');
-    }
+    // if(weaponDamages.pistols.hasOwnProperty(weapon)) {
+    //     player.outputChatBox('Custom damages!');
+    // } else {
+    //     player.outputChatBox('No custom damages. :(');
+    // }
 })
