@@ -235,19 +235,21 @@ mp.events.add('playerWeaponShot', () => {
 });
 
 mp.events.add('outgoingDamage', (sourceEntity, targetEntity, targetPlayer, weapon, boneIndex, damage) => {
-    if(targetEntity && targetEntity.type === "player" && sourceEntity && sourceEntity.type === "ped") {
-        mp.events.callRemote('playerAttack', targetEntity, sourceEntity, boneIndex, damage);
-        return true;
-    }
+    mp.events.callRemote('playerAttack', sourceEntity, targetEntity, targetPlayer, weapon, boneIndex, damage);
+    // if(targetEntity && targetEntity.type === "player" && sourceEntity && sourceEntity.type === "ped") {
+    //     mp.events.callRemote('playerAttack', targetEntity, sourceEntity, boneIndex, damage);
+    //     return true;
+    // }
 })
 
 mp.events.add('playerDeath', (player, reason, killer) => {
     let weaponName = weapons[reason];
     if(killer) {
         if(killer.name == player.name) return mp.gui.chat.push(`How'd you manage that?`);
+
         mp.gui.chat.push(`${killer.name} killed you with a ${weaponName}.`);
         mp.events.callRemote('killedByPlayer', killer, weaponName);
     } else {
-        mp.gui.chat.push(`You died by ${reason}`);
+        mp.gui.chat.push(`You died by ${weaponName}`);
     }
 })
