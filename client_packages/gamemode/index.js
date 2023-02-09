@@ -8,4 +8,8 @@ const rpc = require('./gamemode/includes/rage-rpc.min.js');
 
 mp.events.add('client:playerJoin', (player) => {
     mp.events.call('showLogin', player);
+});
+
+mp.events.add('render', () => {
+    mp.game.controls.disableControlAction(32, 140, true);
 })

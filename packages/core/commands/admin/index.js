@@ -90,7 +90,7 @@ registerAdminCommand(
     ["g"],
     (player, args) => {
         if(!args[0]) return player.outputChatBox("");
-        mp.players.broadcast(`[${player.name}]: ${args}`);
+        mp.players.broadcast(`[${player.name}]: ${args[0]}`);
     },1
 )
 

@@ -21,5 +21,5 @@ mp.events.add('playerReady', (player) => {
 mp.events.add("playerChat", (player, text) => {
 	let pos = player.position;
 
-	mp.players.broadcastInRange(pos, 15, `[${player.name}]: ${text}`);
+	mp.players.broadcastInRange(pos, 40, `${player.name} says: ${text}`);
 });
