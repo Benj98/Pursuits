@@ -1,7 +1,8 @@
 const {     registerAdminCommand, registerCommand, registerAllCommands, adminCommands } = require('../../command-library/command-library');
-const commandsPerPage = 4;
+
 
 async function showAdminCommands(player, page = 1) {
+    const commandsPerPage = 4;
     const totalPages = Math.ceil(adminCommands.size / commandsPerPage);
     
     if (page < 1 || page > totalPages) 
@@ -24,7 +25,6 @@ async function showAdminCommands(player, page = 1) {
 
     player.outputChatBox(`Page ${page} of ${totalPages}`);
 }
-
 
 registerAdminCommand(
     "adminhelp", 
@@ -94,5 +94,3 @@ registerAdminCommand(
         mp.players.broadcast(`[${player.name}]: ${message}`);
     },1
 )
-
-registerAllCommands();

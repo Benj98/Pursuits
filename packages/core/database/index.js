@@ -8,7 +8,9 @@ const datasource = new Sequelize("newpursuits", "root", "", {
 
 datasource.authenticate().then(async () => {
     const { User } = require('./models/user');
+    const { RoundSpawns } = require('./models/roundSpawns');
     const { userRepository } = require("./repositories/user.repository");
+    
     console.log(`Connection successful!`);
     await datasource.sync({ alter: true })
 }).catch((err) => {

@@ -7,3 +7,4 @@ mp.events.add('playerReady', () => {
 		mp.gui.cursor.show(true, true);
 	}, 500)
 });
+

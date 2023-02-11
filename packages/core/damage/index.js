@@ -8,7 +8,7 @@ fs.readFile('./weaponDamages.json', 'utf-8', (err, data) => {
 
 const calculateDamages = async (player, targetPlayer, weapon, boneIndex) => {
     player.outputChatBox("calculateDamages script runs.");
-    if(boneIndex == 98) {
+    if(boneIndex == 20) {
         player.outputChatBox("Headshot!");
     }
 }
@@ -18,7 +18,7 @@ mp.events.add('playerAttack', async (player, sourceEntity, targetEntity, targetP
     player.outputChatBox(`[DEBUG] Hit player: ${targetPlayer.name} | Bone hit: ${boneIndex} | Damage dealt: ${damage} | Weapon: ${weapon}`);
     targetPlayer.outputChatBox(`[DEBUG] Hit by: ${player.name} | Bone hit: ${boneIndex} | Damage received: ${damage} | Weapon: ${weapon}`);
 
-    console.log(`${sourceEntity} + ${targetEntity}`);    
+    console.log(`${sourceEntity.type} + ${targetEntity.type}`);    
 
     console.log(`${targetPlayer.name} was hit by ${player.name} for ${damage} damage.`);
 })

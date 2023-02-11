@@ -6,6 +6,7 @@ require('./globals');
 require('./auth');
 require('./damage');
 require('./death');
+require('./rounds');
 
 mp.events.add('playerReady', (player) => {
 	console.log(`${player.name} is ready!`);
@@ -21,5 +22,5 @@ mp.events.add('playerReady', (player) => {
 mp.events.add("playerChat", (player, text) => {
 	let pos = player.position;
 
-	mp.players.broadcastInRange(pos, 40, `${player.name} says: ${text}`);
+	mp.players.broadcastInRange(pos, 40, player.dimension, `${player.name} says: ${text}`);
 });
