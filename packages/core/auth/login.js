@@ -20,6 +20,8 @@ mp.events.add('loginPlayer', async (player, username, password) => {
 
                 player.name = username;
                 player.alpha = 1;
+                
+                mp.events.call('addPlayerToPool', player);
                 return account;
             } else {
                 return player.outputChatBox("Incorrect password.");

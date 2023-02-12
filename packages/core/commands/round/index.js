@@ -7,13 +7,13 @@ let spawnId = 1;
 registerAdminCommand(
     "setpos",
     "Begin creating spawn points for a lobby.",
-    "/setpos [name] [suspect/cop]",
+    "/setpos [name] [suspect/cop/heli]",
     ["srp"],
     (player, args) => {
         if(!args[0]) return player.outputChatBox(`You must enter either suspect or cop.`);
         let type = args[0];
-        if(type !== "suspect" && type !== "cop") {
-            player.outputChatBox(`Valid arguments: suspect/cop`);
+        if(type !== "suspect" && type !== "cop" && type !== "heli") {
+            player.outputChatBox(`Valid arguments: suspect/cop/heli`);
         } else {
             let pos = player.position;
 
@@ -76,4 +76,14 @@ registerAdminCommand(
             player.outputChatBox(`Spawn point name: ${name}`);
         })
     }, 2
+)
+
+registerCommand(
+    "lobbies",
+    "List all available lobbies.",
+    "/lobbies",
+    [],
+    async (player, args) => {
+        mp.events.call('addPlayerToPool', player);
+    }
 )

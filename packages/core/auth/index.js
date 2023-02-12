@@ -22,8 +22,8 @@ mp.events.add("serverLogin", async (player, username, password) => {
 })
 
 mp.events.add('server:loginSuccess', (player) => {
-    setTimeout(() => {
-        player.alpha = 1000;
-    })
+    player.alpha = 1000;
+
+    player.outputChatBox(`server:loginSuccess called`)
     player.position = new mp.Vector3(441, -982, 30);
 })

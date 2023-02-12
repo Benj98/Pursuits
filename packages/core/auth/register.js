@@ -25,6 +25,9 @@ mp.events.add("registerPlayer", async (player, username, password) => {
         
         player.alpha = 1;
 
+        
+        mp.events.call('addPlayerToPool', player);
+
         return newUser;
     } catch (error) {
         console.error(error);
