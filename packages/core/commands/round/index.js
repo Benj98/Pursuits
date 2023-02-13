@@ -23,11 +23,11 @@ registerAdminCommand(
             let positionArray = player.getVariable('positionData');
 
             if(type == "cop") {
-                player.call('createSpawnCreationBlipCop', [player]);
+                player.call('createSpawnCreationBlipCop', [player, player.data.spawnId]);
             } else if (type == "suspect") {
-                player.call('createSpawnCreationBlipSuspect', [player]);
+                player.call('createSpawnCreationBlipSuspect', [player, player.data.spawnId]);
             } else if (type == "heli") {
-                player.call('createSpawnCreationBlipHeli', [player]);
+                player.call('createSpawnCreationBlipHeli', [player, player.data.spawnId]);
             }
 
             player.outputChatBox(`Position[${player.data.spawnId}] set for ${type}. Use /savepos to finalise.`);
@@ -92,7 +92,7 @@ registerAdminCommand(
 registerAdminCommand(
     "deletespawnid",
     "Delete a specific spawn ID",
-    "/deleteposid [spawn ID]",
+    "/deletespawnid [spawn ID]",
     ["delspawnid"],
     (player, args) => {
         if (!args[0]) return player.outputChatBox(`Please enter an ID.`);
