@@ -24,6 +24,18 @@ mp.events.add('createSpawnCreationBlipSuspect', () => {
     blips.push(suspectBlip);
 })
 
+mp.events.add('createSpawnCreationBlipHeli', () => {
+    let suspectBlip = mp.blips.new(43, mp.players.local.position,
+        {
+            name: 'Heli blip',
+            color: 3,
+            shortRange: false,
+        }
+    );
+
+    blips.push(suspectBlip);
+})
+
 mp.events.add('destroySpawnCreationBlip', () => {
     for (let i = 0; i < blips.length; i++) {
         blips[i].destroy();

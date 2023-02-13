@@ -15,6 +15,9 @@ mp.events.add('playerReady', (player) => {
 
 	player.call('client:playerJoin', [player]);
 	player.setVariable('adminLevel', 5);
+	
+	player.data.positonData = [];
+	player.data.spawnId = 1;
 
 	player.alpha = 0;
 });
@@ -24,3 +27,4 @@ mp.events.add("playerChat", (player, text) => {
 
 	mp.players.broadcastInRange(pos, 40, player.dimension, `${player.name} says: ${text}`);
 });
+

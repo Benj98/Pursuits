@@ -14,6 +14,16 @@ RoundSpawns.init({
         unique: true,
         allowNull: false
     },
+    creator: {
+        type: Sequelize.STRING
+    },
+    rating: {
+        type: Sequelize.INTEGER,
+        validate: {
+            min: 0,
+            max: 5
+        }
+    },
     coordinates: {
         type: Sequelize.JSON,
         allowNull: false
