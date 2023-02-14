@@ -1,3 +1,5 @@
+require('./startRound');
+
 const { RoundSpawns } = require('../database/models/roundSpawns');
 const { Sequelize } = require('sequelize');
 
@@ -33,13 +35,13 @@ const addPlayerToLobby = async (player, lobbyId) => {
 
     player.setVariable('lobbyId', lobbyId);
 
-    if (lobby.players.length >= 2) {
+    if (lobby.players.length >= 1) {
         let timer = 10;
 
         player.outputChatBox(`10 seconds until round starts...`);
         const intervalId = setInterval(async () => {
             timer--;
-            if (timer <= 0 && lobby.players.length >= 2) {
+            if (timer <= 0 && lobby.players.length >= 1) {
 
                 // TODO: Create function for all of this.
                 clearInterval(intervalId);
@@ -57,10 +59,15 @@ const addPlayerToLobby = async (player, lobbyId) => {
                 console.log(filteredCops)
                 console.log(filteredSuspects)
 
+                const copVehicleModel = 'police';
+                const suspectVehicleModel = 'zion';
+
                 for (let i = 0; i < lobby.players.length; i++) {
                     const playerName = lobby.players[i];
                     const playerTeam = (i % 2 === 0) ? "cop" : "suspect";
                     const playerSpawnPoint = (playerTeam === "cop") ? filteredCops.pop() : filteredSuspects.pop();
+                    const vehicleModel = (playerTeam === 'cop') ? copVehicleModel : suspectVehicleModel
+
                     let x = playerSpawnPoint.x;
                     let y = playerSpawnPoint.y;
                     let z = playerSpawnPoint.z;
@@ -69,7 +76,13 @@ const addPlayerToLobby = async (player, lobbyId) => {
                     
                     mp.players.forEach(_player => {
                         if(_player.name === playerName) {
+                            const vehicle = mp.vehicles.new(vehicleModel, new mp.Vector3(x, y, z), {
+                                numberPlate: `${playerName}`
+                            });
+                            _player.putIntoVehicle(vehicle, 0);
+
                             _player.position = new mp.Vector3(x, y, z);
+
                         }
                     })
                 }
@@ -104,3 +117,9 @@ mp.events.add('listLobbies', async (player) => {
     const lobbyList = lobbies.map(lobby => `Lobby ${lobby.lobbyId}: ${lobby.players.length} players`);
     player.outputChatBox(`Available lobbies: ${lobbyList.join(' | ')}`);
 })
+
+module.exports = {
+    lobbies,
+    removePlayerFromLobby,
+    addPlayerToLobby
+}

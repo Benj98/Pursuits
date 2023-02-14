@@ -1,5 +1,6 @@
 const { registerCommand, registerAdminCommand } = require('../../command-library/command-library');
 const { RoundSpawns } = require('../../database/models/roundSpawns');
+const { removePlayerFromLobby, addPlayerToLobby, lobbies } = require('../../rounds/index');
 
 let positionData = [];
 
@@ -139,5 +140,43 @@ registerCommand(
     [],
     async (player, args) => {
         mp.events.call('listLobbies', player);
+    }
+)
+
+registerCommand(
+    "leavelobby",
+    "Leave your current lobby.",
+    "/leavelobby",
+    [],
+    async (player, args) => {
+        const lobbyId = player.getVariable('lobbyId');
+
+        if (lobbyId) {
+            await removePlayerFromLobby(player, lobbyId);
+            player.outputChatBox(`You have left lobby ${lobbyId}`);
+            player.setVariable('lobbyId', null);
+        } else {
+            player.outputChatBox(`You are not in a lobby.`);
+        }
+    }
+)
+
+registerCommand(
+    "joinlobby",
+    "Join an available lobby.",
+    "/joinlobby [lobby id] (Use /lobbies to list available lobbies.",
+    [],
+    async (player, args) => {
+        if(!args[0]) 
+            return player.outputChatBox(`You must enter a lobby ID.`);
+
+        const lobbyId = parseInt(args[0]);
+        const lobby = lobbies.find(i => i.lobbyId === lobbyId);
+
+        if(!lobby) 
+            return player.outputChatBox(`Lobby ${lobbyId} does not exist.`);
+                
+        addPlayerToLobby(player, lobbyId);
+        player.outputChatBox(`You have joined lobby ${lobbyId}`);
     }
 )
