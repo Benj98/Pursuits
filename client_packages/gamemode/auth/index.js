@@ -72,7 +72,7 @@ mp.events.add('registerSuccess', (player) => {
 
     mp.events.call('removeLoginCamera');
 
-    mp.gui.chat.push("[Client] Register successful.");
+    mp.gui.chat.push("[Client] Registration successful.");
 })
 
 mp.events.add('loginSuccess', (player) => {

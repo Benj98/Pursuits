@@ -38,7 +38,7 @@ registerAdminCommand(
                 y: pos.y,
                 z: pos.z
             });
-
+            
             player.setVariable('positionData', positionArray);
         }
     },
@@ -138,6 +138,6 @@ registerCommand(
     "/lobbies",
     [],
     async (player, args) => {
-        mp.events.call('addPlayerToPool', player);
+        mp.events.call('listLobbies', player);
     }
 )
