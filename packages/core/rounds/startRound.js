@@ -45,7 +45,7 @@ async function startRound(lobby) {
 
                 setTimeout(() => {
                     
-                    _player.call('setVehicleRotation', [_player, newHeading]);
+                    // _player.call('setVehicleRotation', [_player, newHeading]);
 
                     if(playerTeam === "cop") {
                         _player.call('roundStartFreezeCop', [_player]);

@@ -41,14 +41,14 @@ const addPlayerToLobby = async (player, lobbyId) => {
 
     player.setVariable('lobbyId', lobbyId);
 
-    if (lobby.players.length >= 2) {
+    if (lobby.players.length >= 1) {
         const countdownLength = 5;
         let countdown = countdownLength;
 
         player.outputChatBox(`${countdown} seconds until round starts...`);
         const intervalId = setInterval(async () => {
             countdown--;
-            if (countdown <= 0 && lobby.players.length >= 2) {
+            if (countdown <= 0 && lobby.players.length >= 1) {
                 clearInterval(intervalId);
                 startRound(lobby);
             }
