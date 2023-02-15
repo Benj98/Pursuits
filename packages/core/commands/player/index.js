@@ -11,3 +11,33 @@ registerCommand(
         player.call('fontsize', [player]);
     }
 )
+
+registerCommand(
+    "dimension",
+    "View your current dimension",
+    "/dimension",
+    "dim",
+    (player, args) => {
+        player.outputChatBox(`Your dimension is ${player.dimension}.`);
+    }
+)
+
+registerCommand(
+    "heading",
+    "View your current heading",
+    "/heading",
+    [],
+    (player, args) => {
+        player.outputChatBox(`Heading: ${player.heading}`);
+    }
+)
+
+registerCommand(
+    "vehheading",
+    "View your vehicle heading",
+    "/vehheading",
+    [],
+    (player, args) => {
+        player.outputChatBox(`Veh heading: ${player.vehicle.heading}`);
+    }
+)

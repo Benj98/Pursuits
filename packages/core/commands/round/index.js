@@ -18,7 +18,17 @@ registerAdminCommand(
             player.outputChatBox(`You must specify 1 heli spawn, 2 suspect spawns and 18 cop spawns.`);
         
         } else {
-            let pos = player.position;
+            let rot, pos;
+
+            if(player.vehicle) {
+                pos = player.vehicle.position;
+                rot = player.vehicle.heading;
+            } else {
+                rot = player.heading;
+                pos = player.position;    
+            }
+            
+
             if (!player.getVariable('positionData')) player.setVariable('positionData', positionData);
 
             let positionArray = player.getVariable('positionData');
@@ -37,7 +47,8 @@ registerAdminCommand(
                 team: type,
                 x: pos.x,
                 y: pos.y,
-                z: pos.z
+                z: pos.z,
+                rot: rot
             });
             
             player.setVariable('positionData', positionArray);
@@ -125,11 +136,47 @@ registerAdminCommand(
     async (player, args) => {
         const roundSpawns = await RoundSpawns.findAll();
 
-        const names = roundSpawns.map(roundSpawn => roundSpawn.name);
+        roundSpawns.forEach(roundSpawn => {
+            const coordinates = JSON.parse(roundSpawn.coordinates);
+            const posCount = coordinates.length;
+            player.outputChatBox(`Spawn point name: ${roundSpawn.name} [${posCount} positions]`);
+        });
+    },
+    2
+);
 
-        names.forEach(name => {
-            player.outputChatBox(`Spawn point name: ${name}`);
-        })
+registerAdminCommand(
+    "tpspawn",
+    "Teleport to a spawn point by name and/or position id.",
+    "/tpspawn [name] [posid]",
+    [],
+    async (player, args) => {
+        if(!args[0]) return player.outputChatBox(`Please enter a name or posId.`);
+
+        let posId = parseInt(args[1] || 1);
+
+        const roundSpawn = await RoundSpawns.findOne({ where: { name: args[0] } });
+
+        if (!roundSpawn) {
+            const spawnPoint = player.getVariable('positionData').find(spawn => spawn.posId === posId);
+
+            if (spawnPoint) {
+                player.position = new mp.Vector3(spawnPoint.x, spawnPoint.y, spawnPoint.z);
+                player.outputChatBox(`Teleported to ${args[0]}[${posId}].`);
+            } else {
+                player.outputChatBox(`Spawn point with posId ${posId} not found.`);
+            }
+        } else {
+            const coordinates = JSON.parse(roundSpawn.coordinates);
+            const spawnPoint = coordinates.find(spawn => spawn.posId === posId);
+
+            if (spawnPoint) {
+                player.position = new mp.Vector3(spawnPoint.x, spawnPoint.y, spawnPoint.z);
+                player.outputChatBox(`Teleported to ${args[0]}[${posId}].`);
+            } else {
+                player.outputChatBox(`Spawn point with posId ${posId} not found.`);
+            }
+        }
     }, 2
 )
 
@@ -175,8 +222,24 @@ registerCommand(
 
         if(!lobby) 
             return player.outputChatBox(`Lobby ${lobbyId} does not exist.`);
+        
+        if(player.getVariable('lobbyId') === lobbyId)
+            return player.outputChatBox(`You are already in lobby ${lobbyId}.`);
                 
         addPlayerToLobby(player, lobbyId);
         player.outputChatBox(`You have joined lobby ${lobbyId}`);
     }
+)
+
+registerAdminCommand(
+    "setcufftimer",
+    "Set the time required between cuff attempts.",
+    "/setcufftimer [time in ms] (1000 is 1 second)",
+    [],
+    (player, args) => {
+        if(!args[0]) return player.outputChatBox(`Usage: /setcufftimer [time in ms]`);
+        if(args[0] < 1000 || args[0] > 15000) return player.outputChatBox(`Please specify a time between 1000-15000`);
+
+        player.call('setCuffTimer', [player, args[0]]);
+    }, 5
 )

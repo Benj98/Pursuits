@@ -94,3 +94,36 @@ registerAdminCommand(
         mp.players.broadcast(`[${player.name}]: ${message}`);
     },1
 )
+
+registerAdminCommand(
+    "setdimension",
+    "Set your dimension.",
+    "/setdimension [dim]",
+    ["setdim"],
+    (player, args) => {
+        const target = args[0];
+        const dim = parseInt(args[1])
+
+        if (!target || isNan(dim)) {
+
+        }
+
+        if(!isNaN) {
+            player.dimension = dim;
+            player.outputChatBox(`Dimension set to ${dim}`);
+        } else {
+            player.outputChatBox(`Invalid dimension: ${args[0]}.`);
+        }
+    }, 1
+)
+
+registerAdminCommand(
+    "testrot",
+    "Test heading function",
+    "/testrot",
+    [],
+    (player, args) => {
+        let rotate = player.heading;
+        player.heading = args[0];
+    }, 2
+)

@@ -3,7 +3,16 @@ let markers = [];
 let labels = [];
 
 mp.events.add('createSpawnCreationBlipCop', (player, id) => {
-    let policeBlip = mp.blips.new(225, mp.players.local.position,
+    let position;
+    player = mp.players.local;
+
+    if (player.vehicle) {
+        position = player.vehicle.position;
+    } else {
+        position = player.position;
+    }
+
+    let policeBlip = mp.blips.new(225, position,
         {
             name: 'Police blip',
             color: 3,
@@ -11,7 +20,7 @@ mp.events.add('createSpawnCreationBlipCop', (player, id) => {
         }
     );
 
-    let policeMarker = mp.markers.new(1, mp.players.local.position, 2.0,
+    let policeMarker = mp.markers.new(1, position, 2.0,
         {
             color: [7, 0, 255, 200],
             visible: true,
@@ -19,7 +28,7 @@ mp.events.add('createSpawnCreationBlipCop', (player, id) => {
         }
     );
     
-    let policeLabel = mp.labels.new(`ID: ${id}`, mp.players.local.position, {
+    let policeLabel = mp.labels.new(`ID: ${id}`, position, {
         los: true,
         font: 7,
         drawDistance: 50,
@@ -33,7 +42,16 @@ mp.events.add('createSpawnCreationBlipCop', (player, id) => {
 })
 
 mp.events.add('createSpawnCreationBlipSuspect', (player, id) => {
-    let suspectBlip = mp.blips.new(225, mp.players.local.position,
+    let position;
+    player = mp.players.local;
+
+    if (player.vehicle) {
+        position = player.vehicle.position;
+    } else {
+        position = player.position;
+    }
+
+    let suspectBlip = mp.blips.new(225, position,
         {
             name: 'Suspect blip',
             color: 6,
@@ -41,20 +59,20 @@ mp.events.add('createSpawnCreationBlipSuspect', (player, id) => {
         }
     );
 
-    let suspectMarker = mp.markers.new(1, mp.players.local.position, 2.0,
+    let suspectMarker = mp.markers.new(1, position, 2.0,
         {
             color: [255, 0, 7, 200],
             visible: true,
-            dimension: mp.players.local.dimension
+            dimension: player.dimension
         }
     )
 
-    let suspectLabel = mp.labels.new(`ID: ${id}`, mp.players.local.position, {
+    let suspectLabel = mp.labels.new(`ID: ${id}`, position, {
         los: true,
         font: 7,
         drawDistance: 50,
         color: [255, 255, 255, 200],
-        dimension: mp.players.local.dimension
+        dimension: player.dimension
     })
 
     labels.push(suspectLabel);
@@ -63,7 +81,17 @@ mp.events.add('createSpawnCreationBlipSuspect', (player, id) => {
 })
 
 mp.events.add('createSpawnCreationBlipHeli', (player, id) => {
-    let heliBlip = mp.blips.new(43, mp.players.local.position,
+    let position;
+    player = mp.players.local;
+
+    if (player.vehicle) {
+        position = player.vehicle.position;
+    } else {
+        position = player.position;
+    }
+
+
+    let heliBlip = mp.blips.new(43, position,
         {
             name: 'Heli blip',
             color: 3,
@@ -71,20 +99,20 @@ mp.events.add('createSpawnCreationBlipHeli', (player, id) => {
         }
     );
 
-    let heliMarker = mp.markers.new(34, mp.players.local.position, 2.0,
+    let heliMarker = mp.markers.new(34, position, 2.0,
         {
             color: [7, 0, 255, 200],
             visible: true,
-            dimension: mp.players.local.dimension
+            dimension: player.dimension
         }
     )
 
-    let heliLabel = mp.labels.new(`ID: ${id}`, mp.players.local.position, {
+    let heliLabel = mp.labels.new(`ID: ${id}`, position, {
         los: true,
         font: 7,
         drawDistance: 50,
         color: [255, 255, 255, 200],
-        dimension: mp.players.local.dimension
+        dimension: player.dimension
     })
 
     labels.push(heliLabel);

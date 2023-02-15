@@ -1,7 +1,9 @@
 require('./startRound');
+require('./cuff');
 
 const { RoundSpawns } = require('../database/models/roundSpawns');
 const { Sequelize } = require('sequelize');
+const { startRound } = require('./startRound');
 
 let lobbies = [];
 let nextLobbyId = 1;
@@ -35,57 +37,17 @@ const addPlayerToLobby = async (player, lobbyId) => {
 
     player.setVariable('lobbyId', lobbyId);
 
-    if (lobby.players.length >= 1) {
-        let timer = 10;
+    if (lobby.players.length >= 2) {
+        const countdownLength = 5;
+        let countdown = countdownLength;
 
-        player.outputChatBox(`10 seconds until round starts...`);
+        player.outputChatBox(`${countdown} seconds until round starts...`);
         const intervalId = setInterval(async () => {
-            timer--;
+            countdown--;
             if (timer <= 0 && lobby.players.length >= 1) {
-
-                // TODO: Create function for all of this.
                 clearInterval(intervalId);
-                player.outputChatBox(`Starting match.`);
-
-                const spawnPoints = await RoundSpawns.findOne({
-                    order: Sequelize.literal('RAND()')
-                })
-                const spawnPointsArray = JSON.parse(spawnPoints.coordinates);
-
-                const filteredSuspects = spawnPointsArray.filter(point => point.team === "suspect");
-                const filteredCops = spawnPointsArray.filter(point => point.team === "cop");
-
-                console.log(spawnPoints.name);
-                console.log(filteredCops)
-                console.log(filteredSuspects)
-
-                const copVehicleModel = 'police';
-                const suspectVehicleModel = 'zion';
-
-                for (let i = 0; i < lobby.players.length; i++) {
-                    const playerName = lobby.players[i];
-                    const playerTeam = (i % 2 === 0) ? "cop" : "suspect";
-                    const playerSpawnPoint = (playerTeam === "cop") ? filteredCops.pop() : filteredSuspects.pop();
-                    const vehicleModel = (playerTeam === 'cop') ? copVehicleModel : suspectVehicleModel
-
-                    let x = playerSpawnPoint.x;
-                    let y = playerSpawnPoint.y;
-                    let z = playerSpawnPoint.z;
-
-                    player.outputChatBox(`${playerName} has been assigned to the ${playerTeam} team and will spawn at (${x}, ${y}, ${z})`);
-                    
-                    mp.players.forEach(_player => {
-                        if(_player.name === playerName) {
-                            const vehicle = mp.vehicles.new(vehicleModel, new mp.Vector3(x, y, z), {
-                                numberPlate: `${playerName}`
-                            });
-                            _player.putIntoVehicle(vehicle, 0);
-
-                            _player.position = new mp.Vector3(x, y, z);
-
-                        }
-                    })
-                }
+                startRound(lobby);
+                
             }
         }, 1000);
     } else {
