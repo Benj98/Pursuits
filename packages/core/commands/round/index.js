@@ -1,6 +1,6 @@
 const { registerCommand, registerAdminCommand } = require('../../command-library/command-library');
 const { RoundSpawns } = require('../../database/models/roundSpawns');
-const { removePlayerFromLobby, addPlayerToLobby, lobbies } = require('../../rounds/index');
+const { lobbyHandler } = require('../../rounds/lobby');
 
 let positionData = [];
 
@@ -186,7 +186,18 @@ registerCommand(
     "/lobbies",
     [],
     async (player, args) => {
-        mp.events.call('listLobbies', player);
+        const lobbies = lobbyHandler.getAllLobbies();
+
+        if (lobbies.length === 0) {
+            player.outputChatBox("There are no lobbies currently available.");
+            return;
+        } else {
+            player.outputChatBox("Available lobbies:");
+            lobbies.forEach((lobby) => {
+                player.outputChatBox(`${lobby.id}: ${lobby.getPlayerCount()} players, ${lobby.getSuspectCount()} suspects, ${lobby.getCopCount()} cops`);
+            });
+            player.call('triggerLobbyBrowser', [player, lobbies]);
+        }
     }
 )
 
@@ -196,14 +207,17 @@ registerCommand(
     "/leavelobby",
     [],
     async (player, args) => {
-        const lobbyId = player.getVariable('lobbyId');
+        const lobby = lobbyHandler.getLobbyByPlayer(player.name);
 
-        if (lobbyId) {
-            await removePlayerFromLobby(player, lobbyId);
-            player.outputChatBox(`You have left lobby ${lobbyId}`);
-            player.setVariable('lobbyId', null);
+        if (!lobby) {
+          player.outputChatBox("You are not currently in a lobby.");
         } else {
-            player.outputChatBox(`You are not in a lobby.`);
+          lobby.removePlayer(player);
+          player.outputChatBox(`You have left lobby '${lobby.id}'.`);
+
+          if(lobby.getPlayerCount() === 0) {
+            lobbyHandler.deleteLobby(lobby.id);
+          }
         }
     }
 )
@@ -214,20 +228,22 @@ registerCommand(
     "/joinlobby [lobby id] (Use /lobbies to list available lobbies.",
     [],
     async (player, args) => {
-        if(!args[0]) 
-            return player.outputChatBox(`You must enter a lobby ID.`);
-
-        const lobbyId = parseInt(args[0]);
-        const lobby = lobbies.find(i => i.lobbyId === lobbyId);
+        const lobby = lobbyHandler.getLobby(args[0]);
 
         if(!lobby) 
-            return player.outputChatBox(`Lobby ${lobbyId} does not exist.`);
-        
-        if(player.getVariable('lobbyId') === lobbyId)
-            return player.outputChatBox(`You are already in lobby ${lobbyId}.`);
-                
-        addPlayerToLobby(player, lobbyId);
-        player.outputChatBox(`You have joined lobby ${lobbyId}`);
+            return player.outputChatBox(`Lobby ${args[0]} not found.`);
+
+        if(lobby.getPlayerCount() >= 20) {
+            player.outputChatBox(`Lobby is full.`);
+        }
+
+        const currentLobby = lobbyHandler.getLobbyByPlayer(player.name);
+        if (currentLobby) {
+            currentLobby.removePlayer(player);
+        }
+
+        lobby.addPlayer(player);
+        player.outputChatBox(`You have joined lobby '${args[0]}'.`);
     }
 )
 

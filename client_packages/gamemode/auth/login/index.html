@@ -5,26 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <script src="jquery-3.2.1.js"></script>
+    <script src="https://kit.fontawesome.com/4a2f987005.js" crossorigin="anonymous"></script>
     <title>Document</title>
 </head>
 <body>
     <div class="main">
         <div class="form-div">
             <form id="login-form">
-                <h1>Login</h1>
-                <div>
-                    <label for="username">Username</label>
-                    <input id="username" name="username" placeholder="Username" spellcheck="false" autofocus>
+                <h1 class="login-h1">Login</h1>
+                <div class="username-div">
+                    <input type="username" id="username" name="username" placeholder="Username" spellcheck="false" autofocus>
+                    <span class="fa-solid fa-user"></span>
                 </div>
-                <div>
-                    <label for="password">Password</label>
+                <div class="password-div">
                     <input type="password" id="password" name="password" placeholder="Password" spellcheck="false">
+                    <span class="fa-solid fa-key"></span>
                 </div>
                 <div class="buttons">
-                    <button type="button" id="register" onclick="onButtonClick()">Register</button>
                     <button type="submit" onclick="onClickSubmit()">Login</button>
                 </div>
-                
+                <p>Don't have an account? <a href="#" onclick="onButtonClick()">Register now</a></p>
             </form>
         </div>
     </div>

@@ -24,7 +24,6 @@ mp.events.add("registerPlayer", async (player, username, password) => {
         mp.events.call('server:loginSuccess', player);
         
         player.alpha = 1;
-
         
         mp.events.call('addPlayerToPool', player);
 
