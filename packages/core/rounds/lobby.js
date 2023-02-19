@@ -42,7 +42,7 @@ class RoundHandler {
             let suspectsIndex = 0;
 
             let copVehicles = ['police', 'police2', 'police3', 'police4'];
-            let civVehicles = ['blista', 'fusilade', 'comet2', 'sultanrs'];   
+            let civVehicles = ['asbo', 'fusilade', 'rancherxl', 'primo2'];   
 
             mp.players.forEach((player) => {
                 
@@ -53,7 +53,7 @@ class RoundHandler {
                         player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
                         player.dimension = this.dimension;
                         
-                        player.outputChatBox(`You are a suspect.`);   
+                        player.outputChatBox(`You are a suspect.`);
 
                         setTimeout(() => {
                             const vehicleHash = civVehicles[Math.floor(Math.random() * civVehicles.length)];
@@ -66,6 +66,8 @@ class RoundHandler {
                             vehicle.setColor(0, 0);
                             player.putIntoVehicle(vehicle, 0);
                         }, 300);
+                        
+                        player.call('freezeCopOnSpawn', [player]);
                     }
 
                     suspectsIndex++;
@@ -74,27 +76,63 @@ class RoundHandler {
                     const spawn = this.copPositions.pop();
 
                     if (spawn) {
-                      player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
-                      player.outputChatBox(`You are a cop.`);
-                    
-                      const vehicleHash = copVehicles[Math.floor(Math.random() * copVehicles.length)];
-                      const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
-                        numberPlate: player.name,
-                        heading: spawn.rot
-                      }); 
+                        player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
+                        player.dimension = this.dimension;
+                        player.outputChatBox(`You are a cop.`);
+                        
+                        const vehicleHash = copVehicles[Math.floor(Math.random() * copVehicles.length)];
+                        const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
+                            numberPlate: player.name,
+                            heading: spawn.rot,
+                            dimension: this.dimension
+                        }); 
 
-                      vehicle.setColor(0, 0);
-                      player.putIntoVehicle(vehicle, 0);
+                        vehicle.setColor(0, 0);
+                        player.putIntoVehicle(vehicle, 0);
+
+                        player.call('freezeCopOnSpawn', [player]);
                     }   
                 }
             });
+            this.startRound();
         } catch(error) {
           console.error(error);
         }
     }
 
     async startRound() {
-            
+        const timerDuration = 300000;
+        
+        let timerPaused = false;
+        let timerRemaining = timerDuration;
+
+        const timerPromise = new Promise((resolve) => {
+            const timeoutId = setTimeout(() => {
+                resolve();
+            }, timerRemaining);
+
+            mp.events.add('roundTimerPause', () => {
+                if (!timerPaused) {
+                    clearTimeout(timeoutId);
+                    timerRemaining -= Date.now() - timeoutId._idleStart;
+                    timerPaused = true;
+                }
+            })
+
+            mp.events.add('roundTimerResume', () => {
+                if (timerPaused) {
+                    timeoutId = setTimeout(() => {
+                        resolve();
+                    }, timerRemaining);
+                    timerPaused = false;
+                }
+            })
+        })
+        
+        await timerPromise;
+
+        let lobby = lobbyHandler.getLobby(this.lobby);
+        lobby.endGame();
     }
 
     setPlayers(players) {
@@ -221,6 +259,7 @@ class Lobby {
 
         if(player) {
             player.position = new mp.Vector3(441, -982, 30);
+            player.dimension = 0;
         }
     }
 
