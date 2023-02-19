@@ -26,7 +26,7 @@ const cuffSuspect = async (player, suspect) => {
 }
 
 const getNearbySuspect = async (player) => {
-    mp.players.forEachInRange(player.position, 2, (_player) => {
+    mp.players.forEachInRange(player.position, 3, (_player) => {
         let team = _player.getVariable('team');
         if(team === "suspect") {
             return _player;

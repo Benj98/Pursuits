@@ -11,11 +11,10 @@ require('./gamemode/crouch');
 
 mp.events.add('client:playerJoin', (player) => {
     mp.events.call('showLogin', player);
+    mp.gui.chat.show(false);
 });
 
 mp.events.add('render', () => {
     mp.game.controls.disableControlAction(32, 140, true);
     let isTyping = mp.players.local.isTypingInTextChat;
-
-
 })

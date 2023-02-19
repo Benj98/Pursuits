@@ -1,3 +1,115 @@
+const { RoundSpawns } = require('../database/models/roundSpawns');
+const { Sequelize } = require('sequelize');
+
+async function getSpawnCoords() {
+    try{
+        const spawnPoints = await RoundSpawns.findOne({
+            order: Sequelize.literal('RAND()')
+        });
+        let spawns = JSON.parse(spawnPoints.coordinates);
+        return JSON.stringify(spawns);
+    } catch(error) {
+        console.error(error);
+    }
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+class RoundHandler {
+    constructor(lobby, suspects, cops, copPositions, suspectPositions) {
+        this.lobby = lobby;
+        this.suspects = suspects;
+        this.cops = cops;
+        this.copPositions = copPositions;
+        this.suspectPositions = suspectPositions;
+    }
+  
+    async spawnPlayers() {
+        console.log(this.lobby + this.suspects + this.cops + this.copPositions + this.suspectPositions);
+      try {
+        const suspects = this.suspects;
+        const cops = this.cops;
+
+        this.suspectPositions = shuffle(this.suspectPositions);
+
+        let suspectsIndex = 0;
+        let copVehicles = ['police', 'police2', 'police3', 'police4'];
+        let civVehicles = ['blista', 'fusilade', 'comet2', 'sultanrs'];
+
+        mp.players.forEach((player) => {
+
+            if (suspects.includes(player.name)) {
+                const spawn = this.suspectPositions[suspectsIndex];
+
+                console.log(spawn.x)
+                console.log(spawn.y)
+                console.log(spawn.z)
+
+                if (spawn) {
+                    player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
+                    player.outputChatBox(`You are a suspect.`);
+
+                    const vehicleHash = civVehicles[Math.floor(Math.random() * civVehicles.length)];
+                    const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
+                        numberPlate: player.name,
+                        heading: spawn.rot
+                    });
+
+                    vehicle.setColor(0, 0);
+                    player.putIntoVehicle(vehicle, 0);
+                }
+                suspectsIndex++;
+                console.log(suspectsIndex);
+
+            } else if (cops.includes(player.name)) {
+                const spawn = this.copPositions.pop();
+
+                if (spawn) {
+                  player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
+                  player.outputChatBox(`You are a cop.`);
+                
+                  const vehicleHash = copVehicles[Math.floor(Math.random() * copVehicles.length)];
+                  const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
+                    numberPlate: player.name,
+                    heading: spawn.rot
+                  });
+                  vehicle.setColor(0, 0);
+                  player.putIntoVehicle(vehicle, 0);
+                }   
+            }
+        });
+      } catch(error) {
+        console.error(error);
+      }
+    }
+
+    setPlayers(players) {
+        this.players = players;
+    }
+
+    setCops(cops) {
+        this.cops = cops;
+    }
+
+    setSuspects(suspects) {
+        this.suspects = suspects;
+    }
+
+    setCopPositions(copPositions) {
+        this.copPositions = copPositions;
+    }
+
+    setSuspectPositions(suspectPositions) {
+        this.suspectPositions = suspectPositions;
+    }
+}
+
 class Lobby {
     constructor(id) {
         this.id = id;
@@ -6,23 +118,56 @@ class Lobby {
         this.cops = [];
         this.gameStarted = false;
         this.gameStarting = false;
-        
-        this.emptyLobbyChecker = setInterval(() => {
-            if (this.id === 1) return clearInterval(this.emptyLobbyChecker);
+        this.copPositions = [];
+        this.suspectPositions = [];
 
-            if (this.players.length === 0 && this.id !== 1) {
-                lobbyHandler.deleteLobby(this.id);
-                clearInterval(this.emptyLobbyChecker);
-            } 
-        }, 10000);
+        this.roundHandler = null;
+
+        this.loadPositions();
+        
+        // this.emptyLobbyChecker = setInterval(() => {
+        //     if (this.id === 1) return clearInterval(this.emptyLobbyChecker);
+
+        //     if (this.players.length === 0 && this.id !== 1) {
+        //         lobbyHandler.deleteLobby(this.id);
+        //         clearInterval(this.emptyLobbyChecker);
+        //     } 
+        // }, 10000);
     }
 
-    //Check if there are any players in the lobby. Delete if none except lobby 1.
+    async loadPositions() {
+        const positionsArray = await getSpawnCoords();
+        let spawnPointsArray = JSON.parse(positionsArray);
+
+        for (const pos of spawnPointsArray) {
+
+            if (pos.team === "cop") {
+                this.copPositions.push({ x: pos.x, y: pos.y, z: pos.z, rot: pos.rot });
+                console.log(`${pos.x} + ${pos.y} + ${pos.z} +++ ${pos.team}` + `COP POS`);
+            } else if (pos.team === "suspect") {
+                this.suspectPositions.push({ x: pos.x, y: pos.y, z: pos.z, rot: pos.rot });
+                console.log(`${pos.x} + ${pos.y} + ${pos.z} +++ ${pos.team}` + `SUS POS`);
+            }
+        }
+    }
+
     addPlayer(player) {
+        const currentLobby = lobbyHandler.getLobbyByPlayer(player.name);
+
+        if(this.players.includes(player.name)) {
+            return;
+        }
+
+        if(currentLobby && currentLobby.id !== this.id) {
+            currentLobby.removePlayer(player);
+        }
+
         this.players.push(player.name);
 
         this.broadcast(`${player.name} joined the lobby.`);
         this.startGameIfReady();
+
+        player.call('removeLobbyCef', [player]);
     }
 
     removePlayer(player) {    
@@ -46,38 +191,42 @@ class Lobby {
         }
     }
 
-    assignRoles() {
-        const numPlayers = this.players.length;
-        const numSuspects = Math.floor(numPlayers / 6); // 1 suspect per 5 cops
-        const numCops = numPlayers - numSuspects;
-    
-        // Shuffle the players
-        const shuffledPlayers = this.shuffle(this.players.slice());
-    
-        // Assign roles to players
-        this.suspects = shuffledPlayers.slice(0, numSuspects);
-        this.cops = shuffledPlayers.slice(numCops);
-    
-        // Make sure there is exactly 1 suspect per 5 cops
-        while (this.suspects.length < this.cops.length / 5) {
-          const extraCop = this.cops.pop();
-          this.suspects.push(extraCop);
+    async assignRoles() {
+        try {
+            const numPlayers = this.players.length;
+            const numSuspects = Math.floor(numPlayers / 6);
+            const numCops = numPlayers - numSuspects;   
+            await this.loadPositions();
+            
+            const shuffledPlayers = this.shuffle(this.players);
+            this.cops = shuffledPlayers.slice(0, numCops);
+            this.suspects = []; 
+
+            for (let i = 0; i < this.cops.length; i++) {
+              if (i % 5 === 0) {
+                this.suspects.push(this.cops[i]);
+                this.cops.splice(i, 1);
+              }
+            }
+        } catch(error) {
+          console.error(error);
         }
-    }
+    }      
 
     async startGame() {
+        const roundHandler = new RoundHandler(this.id);
         this.gameStarting = false;
-        this.assignRoles();
+        await this.assignRoles();
 
         this.broadcast(`Game starting!`);
 
-        this.suspects.forEach((player) => {
-            this.teamBroadcast(`You are a suspect.`, "suspect");
-        })
+        roundHandler.setPlayers(this.players);
+        roundHandler.setCops(this.cops);
+        roundHandler.setSuspects(this.suspects);
+        roundHandler.setCopPositions(this.copPositions);
+        roundHandler.setSuspectPositions(this.suspectPositions);
 
-        this.cops.forEach((player) => {
-            this.teamBroadcast(`You are a cop.`, "cop");
-        })
+        roundHandler.spawnPlayers();
 
         return this.gameStarted = true;
     }
@@ -88,19 +237,18 @@ class Lobby {
 
     startGameIfReady() {
         if (this.players.length >= 1 && !this.gameStarted && !this.gameStarting) {
-            this.gameStarting = true; // Set the gameStarting flag to prevent overlapping game sessions
+            this.gameStarting = true; 
             this.broadcast(`The game will start in 10 seconds.`);
 
             setTimeout(() => {
-                if (this.players.length >= 1) { // Check if there are still enough players to start the game
+                if (this.players.length >= 1) { 
                     this.startGame();
 
                 } else {
                     this.broadcast(`Not enough players to start the game.`);
-                    this.gameStarting = false; // Reset the gameStarting flag
-
+                    this.gameStarting = false;
                 }
-            }, 10000); // Delay the start of the game by 10 seconds
+            }, 10000);
         }
     }
 

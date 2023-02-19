@@ -188,16 +188,17 @@ registerCommand(
     async (player, args) => {
         const lobbies = lobbyHandler.getAllLobbies();
 
-        if (lobbies.length === 0) {
-            player.outputChatBox("There are no lobbies currently available.");
-            return;
-        } else {
-            player.outputChatBox("Available lobbies:");
-            lobbies.forEach((lobby) => {
-                player.outputChatBox(`${lobby.id}: ${lobby.getPlayerCount()} players, ${lobby.getSuspectCount()} suspects, ${lobby.getCopCount()} cops`);
-            });
-            player.call('triggerLobbyBrowser', [player, lobbies]);
-        }
+        player.call('triggerLobbyBrowser', [player, lobbies]);
+    }
+)
+
+registerCommand(
+    "testspawn",
+    "",
+    "",
+    [],
+    (player, args) => {
+        mp.events.call('testspawncoords', player);
     }
 )
 

@@ -1,17 +1,14 @@
 
 // // F3 KEY -- SHOW/HIDE CURSOR.
 
-// mp.keys.bind(0x72, false, function() {
-//     let toggle = !toggle;
-
-//     if(toggle) {
-//         mp.gui.cursor.show(true, true);
-//         toggle;
-//     } else {
-//         mp.gui.cursor.show(false, false);
-//         toggle;
-//     }
-// })
+mp.keys.bind(0x72, false, function() {
+    let toggle = !toggle;
+    if(toggle) {
+        mp.gui.cursor.show(false, false);
+    } else {
+        mp.gui.cursor.show(true, true);
+    }
+})
 
 // // H KEY -- ATTEMPT CUFF ON SUSPECT.
 

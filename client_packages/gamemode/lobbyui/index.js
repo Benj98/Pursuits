@@ -6,31 +6,38 @@ mp.events.add('triggerLobbyBrowser', (player, lobbies) => {
     mp.gui.cursor.show(true, true);
 })
 
-mp.events.add('lobbyselect', () => {
-    mp.gui.chat.push(`lobby selected`)
-})
-
 mp.events.add("client:receiveLobbies", (player, lobbies) => {
     if(!lobbies) return;
-    
-    lobbybrowser.execute(`showLobbies(${lobbies.id}, ${lobbies.gameStarted});`);
 
-    lobbies.forEach((lobby) => {
-        let lobbyStarted;
-        if(lobby.gameStarted) {
-            lobbyStarted = "<p>In pursuit</p>";
-        } else {
-            lobbyStarted = "<p>Waiting to start...</p>";
-        }
+    lobbybrowser.reload(true);
 
-        lobbybrowser.active = !lobbybrowser.active;
-
-        if(!lobbybrowser.active) {
-            mp.gui.cursor.show(false, false);
-        }
-    });
+    lobbybrowser.execute(`showLobbies(${JSON.stringify(lobbies)})`);
+    lobbybrowser.active = !lobbybrowser.active;
 });
 
-mp.events.add('ceftrigger', (lobbyId, lobbyStarted) => {
-    mp.gui.chat.push(`ceftrigger - ${lobbyId}, ${lobbyStarted}`)
+mp.events.add('ceftrigger', (lobbies) => {
+    mp.gui.chat.push(`ceftrigger - ${lobbies}`)
 })
+
+mp.events.add('destroyLobbyBrowser', () => {
+    lobbybrowser.active = false;
+    mp.gui.cursor.show(false, false);
+})
+
+mp.events.add('lobbyClick', (id) => {
+    mp.events.callRemote('joinLobbyFromClient', id);
+})
+
+mp.events.add('removeLobbyCef', (player) => {
+    if(!lobbybrowser) return;
+    if(lobbybrowser.active) {
+        lobbybrowser.reload(true);
+        lobbybrowser.active = false;
+        mp.gui.cursor.show(false, false);
+    } else 
+        return;
+})
+
+mp.keys.bind(0x59, false, () => {
+    mp.events.call('destroyLobbyBrowser');
+});
