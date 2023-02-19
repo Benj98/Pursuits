@@ -6,6 +6,7 @@ async function getSpawnCoords() {
         const spawnPoints = await RoundSpawns.findOne({
             order: Sequelize.literal('RAND()')
         });
+
         let spawns = JSON.parse(spawnPoints.coordinates);
         return JSON.stringify(spawns);
     } catch(error) {
@@ -28,65 +29,72 @@ class RoundHandler {
         this.cops = cops;
         this.copPositions = copPositions;
         this.suspectPositions = suspectPositions;
+        this.dimension = Math.floor(Math.random() * 5000) + 1;
     }
   
     async spawnPlayers() {
-        console.log(this.lobby + this.suspects + this.cops + this.copPositions + this.suspectPositions);
-      try {
-        const suspects = this.suspects;
-        const cops = this.cops;
+        try {
+            const suspects = this.suspects;
+            const cops = this.cops;   
 
-        this.suspectPositions = shuffle(this.suspectPositions);
+            this.suspectPositions = shuffle(this.suspectPositions);   
 
-        let suspectsIndex = 0;
-        let copVehicles = ['police', 'police2', 'police3', 'police4'];
-        let civVehicles = ['blista', 'fusilade', 'comet2', 'sultanrs'];
+            let suspectsIndex = 0;
 
-        mp.players.forEach((player) => {
+            let copVehicles = ['police', 'police2', 'police3', 'police4'];
+            let civVehicles = ['blista', 'fusilade', 'comet2', 'sultanrs'];   
 
-            if (suspects.includes(player.name)) {
-                const spawn = this.suspectPositions[suspectsIndex];
+            mp.players.forEach((player) => {
+                
+                if (suspects.includes(player.name)) {
+                    const spawn = this.suspectPositions[suspectsIndex];  
 
-                console.log(spawn.x)
-                console.log(spawn.y)
-                console.log(spawn.z)
+                    if (spawn) {
+                        player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
+                        player.dimension = this.dimension;
+                        
+                        player.outputChatBox(`You are a suspect.`);   
 
-                if (spawn) {
-                    player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
-                    player.outputChatBox(`You are a suspect.`);
+                        setTimeout(() => {
+                            const vehicleHash = civVehicles[Math.floor(Math.random() * civVehicles.length)];
+                            const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
+                                numberPlate: player.name,
+                                heading: spawn.rot,
+                                dimension: this.dimension
+                            });
 
-                    const vehicleHash = civVehicles[Math.floor(Math.random() * civVehicles.length)];
-                    const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
+                            vehicle.setColor(0, 0);
+                            player.putIntoVehicle(vehicle, 0);
+                        }, 300);
+                    }
+
+                    suspectsIndex++;
+                    console.log(suspectsIndex);   
+                } else if (cops.includes(player.name)) {
+                    const spawn = this.copPositions.pop();
+
+                    if (spawn) {
+                      player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
+                      player.outputChatBox(`You are a cop.`);
+                    
+                      const vehicleHash = copVehicles[Math.floor(Math.random() * copVehicles.length)];
+                      const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
                         numberPlate: player.name,
                         heading: spawn.rot
-                    });
+                      }); 
 
-                    vehicle.setColor(0, 0);
-                    player.putIntoVehicle(vehicle, 0);
+                      vehicle.setColor(0, 0);
+                      player.putIntoVehicle(vehicle, 0);
+                    }   
                 }
-                suspectsIndex++;
-                console.log(suspectsIndex);
+            });
+        } catch(error) {
+          console.error(error);
+        }
+    }
 
-            } else if (cops.includes(player.name)) {
-                const spawn = this.copPositions.pop();
-
-                if (spawn) {
-                  player.position = new mp.Vector3(spawn.x, spawn.y, spawn.z);
-                  player.outputChatBox(`You are a cop.`);
-                
-                  const vehicleHash = copVehicles[Math.floor(Math.random() * copVehicles.length)];
-                  const vehicle = mp.vehicles.new(mp.joaat(vehicleHash), player.position, {
-                    numberPlate: player.name,
-                    heading: spawn.rot
-                  });
-                  vehicle.setColor(0, 0);
-                  player.putIntoVehicle(vehicle, 0);
-                }   
-            }
-        });
-      } catch(error) {
-        console.error(error);
-      }
+    async startRound() {
+            
     }
 
     setPlayers(players) {
@@ -108,6 +116,21 @@ class RoundHandler {
     setSuspectPositions(suspectPositions) {
         this.suspectPositions = suspectPositions;
     }
+
+    deleteRound() {
+        this.players = [];
+        this.cops = [];
+        this.suspects = [];
+        this.copPositions = [];
+        this.suspectPositions = [];
+
+        mp.players.forEachInDimension(this.dimension, (player) => {
+            player.position = new mp.Vector3(441, -982, 30);
+            player.dimension = 0;
+        })
+
+        lobbyHandler.endGame();
+    }
 }
 
 class Lobby {
@@ -121,9 +144,9 @@ class Lobby {
         this.copPositions = [];
         this.suspectPositions = [];
 
-        this.roundHandler = null;
-
         this.loadPositions();
+
+        this.roundHandler = new Map();
         
         // this.emptyLobbyChecker = setInterval(() => {
         //     if (this.id === 1) return clearInterval(this.emptyLobbyChecker);
@@ -135,6 +158,14 @@ class Lobby {
         // }, 10000);
     }
 
+    async deleteRound() {
+        try {
+            this.roundHandler.delete();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async loadPositions() {
         const positionsArray = await getSpawnCoords();
         let spawnPointsArray = JSON.parse(positionsArray);
@@ -143,10 +174,8 @@ class Lobby {
 
             if (pos.team === "cop") {
                 this.copPositions.push({ x: pos.x, y: pos.y, z: pos.z, rot: pos.rot });
-                console.log(`${pos.x} + ${pos.y} + ${pos.z} +++ ${pos.team}` + `COP POS`);
             } else if (pos.team === "suspect") {
                 this.suspectPositions.push({ x: pos.x, y: pos.y, z: pos.z, rot: pos.rot });
-                console.log(`${pos.x} + ${pos.y} + ${pos.z} +++ ${pos.team}` + `SUS POS`);
             }
         }
     }
@@ -176,7 +205,7 @@ class Lobby {
         if (index !== -1) {
             this.players.splice(index, 1);
         }
-    
+        
         const isSuspect = this.suspects.indexOf(player.name) !== -1;
         const isCop = this.cops.indexOf(player) !== -1;
     
@@ -188,6 +217,10 @@ class Lobby {
     
         if (this.gameStarted && this.players.length === 0) {
             this.endGame();
+        }
+
+        if(player) {
+            player.position = new mp.Vector3(441, -982, 30);
         }
     }
 
@@ -215,6 +248,8 @@ class Lobby {
 
     async startGame() {
         const roundHandler = new RoundHandler(this.id);
+        this.roundHandler.set(this.id, roundHandler)
+
         this.gameStarting = false;
         await this.assignRoles();
 
@@ -226,12 +261,15 @@ class Lobby {
         roundHandler.setCopPositions(this.copPositions);
         roundHandler.setSuspectPositions(this.suspectPositions);
 
-        roundHandler.spawnPlayers();
+        await roundHandler.spawnPlayers();
+
+        roundHandler.startRound();
 
         return this.gameStarted = true;
     }
 
     endGame() {
+        this.deleteRound();
         return this.gameStarted = false;
     }
 
