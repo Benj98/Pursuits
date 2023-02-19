@@ -313,12 +313,12 @@ class Lobby {
     }
 
     startGameIfReady() {
-        if (this.players.length >= 1 && !this.gameStarted && !this.gameStarting) {
+        if (this.players.length >= 2 && !this.gameStarted && !this.gameStarting) {
             this.gameStarting = true; 
             this.broadcast(`The game will start in 10 seconds.`);
 
             setTimeout(() => {
-                if (this.players.length >= 1) { 
+                if (this.players.length >= 2) { 
                     this.startGame();
 
                 } else {
